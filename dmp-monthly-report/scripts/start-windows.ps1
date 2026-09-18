@@ -2,7 +2,7 @@
 # Draws the banner, runs the shared setup, then keeps the console open streaming
 # the server log — the window must never vanish, or a first-time user has no idea
 # whether the app is running or how to stop it.
-param([switch]$Dev)
+param([switch]$Dev, [switch]$Stop)
 
 $ErrorActionPreference = 'Continue'
 try { [Console]::OutputEncoding = [Text.Encoding]::UTF8 } catch {}
@@ -81,6 +81,39 @@ function Get-DataInfo {
     return ('{0:N0} jobs  ·  {1} → {2}' -f [int]$total, $min, $max)
 }
 
+# Only these may be killed by stop.bat: the report's own server. Anything else
+# holding the port belongs to another program and is never touched.
+$OwnProcessNames = @('python', 'pythonw', 'node')
+
+function Get-PortProcess([int]$port) {
+    $ids = @()
+    try {
+        $ids = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction Stop |
+               Select-Object -ExpandProperty OwningProcess -Unique
+    } catch {
+        # Older Windows without the NetTCPIP module
+        $ids = netstat -ano | Select-String ":$port\s+.*LISTENING" |
+               ForEach-Object { ($_ -split '\s+')[-1] } | Sort-Object -Unique
+    }
+    $ids | ForEach-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue }
+}
+
+function Stop-App {
+    $stopped = 0
+    foreach ($port in @($Port, 5173)) {
+        foreach ($proc in (Get-PortProcess $port)) {
+            if ($OwnProcessNames -notcontains $proc.ProcessName) {
+                Write-Host ("  !  Port {0} is held by {1} (PID {2}) - that is not this app, so it was left alone." -f $port, $proc.ProcessName, $proc.Id) -ForegroundColor Yellow
+                continue
+            }
+            & cmd.exe /c "taskkill /PID $($proc.Id) /T /F" | Out-Null
+            Write-Host ("  * Stopped {0} (PID {1}) on port {2}" -f $proc.ProcessName, $proc.Id, $port) -ForegroundColor Green
+            $stopped++
+        }
+    }
+    return $stopped
+}
+
 function Stop-Here([string]$message) {
     Write-Host ''
     Write-Host '  !  ' -ForegroundColor Red -NoNewline
@@ -94,6 +127,21 @@ function Stop-Here([string]$message) {
 
 Show-Banner
 
+# ---- stop.bat ---------------------------------------------------------------
+if ($Stop) {
+    Write-Rule 'Stopping'
+    $n = Stop-App
+    Write-Host ''
+    if ($n -gt 0) {
+        Write-Host '  The report is stopped. Any window it was running in can be closed.' -ForegroundColor Gray
+    } else {
+        Write-Host '  Nothing was running - the report is already stopped.' -ForegroundColor Gray
+    }
+    Write-Host ''
+    Read-Host '  Press Enter to close this window'
+    exit 0
+}
+
 # ---- already running? -------------------------------------------------------
 if (-not $Dev) {
     try {
@@ -102,10 +150,21 @@ if (-not $Dev) {
             Write-Status 'Running' "already started at $Url" 'Yellow'
             Start-Process $Url
             Write-Host ''
-            Write-Host '  The app was already running, so the browser just opened again.' -ForegroundColor DarkGray
-            Write-Host '  Its log lives in the other window - close that one to stop the app.' -ForegroundColor DarkGray
+            Write-Host '  The report was already running, so the browser just opened again.' -ForegroundColor Gray
+            Write-Host '  Its log is in the other window. Cannot find that window?' -ForegroundColor Gray
             Write-Host ''
-            Read-Host '  Press Enter to close this window'
+            Write-Host '    [S] stop it now      [Enter] leave it running' -ForegroundColor White
+            Write-Host ''
+            $answer = Read-Host '  Your choice'
+            if ($answer -match '^[sS]') {
+                Write-Rule 'Stopping'
+                if ((Stop-App) -gt 0) {
+                    Write-Host ''
+                    Write-Host '  Stopped. Double-click start.bat when you want it back.' -ForegroundColor Gray
+                }
+                Write-Host ''
+                Read-Host '  Press Enter to close this window'
+            }
             exit 0
         }
         Stop-Here "Port $Port is used by another program. Close it, or set OSP_PORT to another number."
@@ -147,6 +206,9 @@ Write-Host '             │' -ForegroundColor DarkGray
 Write-Host '  │  ' -ForegroundColor DarkGray -NoNewline
 Write-Host 'Closing it - or pressing Ctrl+C - stops the app.' -ForegroundColor Gray -NoNewline
 Write-Host '            │' -ForegroundColor DarkGray
+Write-Host '  │  ' -ForegroundColor DarkGray -NoNewline
+Write-Host 'Lost this window? Double-click stop.bat to stop the app.' -ForegroundColor Gray -NoNewline
+Write-Host '    │' -ForegroundColor DarkGray
 Write-Host '  └──────────────────────────────────────────────────────────────┘' -ForegroundColor DarkGray
 
 # ---- open the browser once the server answers -------------------------------
