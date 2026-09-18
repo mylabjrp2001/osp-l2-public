@@ -14,19 +14,9 @@ import PageHeader from "../components/PageHeader.jsx";
 import ChartCard from "../components/ChartCard.jsx";
 import { useFilters, applyFilters } from "../filters.jsx";
 import { COLORS, MONTHS_EN } from "../theme.js";
-import { monthKey } from "../utils.js";
+import { lastSixMonths, monthKey } from "../utils.js";
 
 const PALETTE = ["#1e3a8a", "#d4a017", "#42a5f5", "#a78bfa", "#5DADE2", "#10b981"];
-
-function lastSixMonths(endStr) {
-  const [y, m] = endStr.slice(0, 7).split("-").map(Number);
-  const out = [];
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(y, m - 1 - i, 1);
-    out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-  }
-  return out;
-}
 
 function topProblemsForRange(records, months) {
   // First, find top 5 SUBCAUSE2 by total count across months

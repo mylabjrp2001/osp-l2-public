@@ -73,6 +73,26 @@ export function targetForRange(monthlyTarget, startStr, endStr) {
   return monthlyTarget * monthsInRange(startStr, endStr);
 }
 
+// The six month keys ("YYYY-MM") ending at the month of `endStr`, oldest first.
+// Pages 5, 8, 9 and 10 always show this window, whatever the date filter says.
+export function lastSixMonths(endStr) {
+  const [y, m] = endStr.slice(0, 7).split("-").map(Number);
+  const out = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(y, m - 1 - i, 1);
+    out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+  }
+  return out;
+}
+
+// The calendar month before the month of `endStr`, as [start, end] ISO dates —
+// the "Last Month" column on the KPI, ranking and duration pages.
+export function prevMonthRange(endStr) {
+  const e = parseISODate(endStr) || new Date();
+  const prevEnd = new Date(e.getFullYear(), e.getMonth(), 0);
+  return [toISODate(startOfMonth(prevEnd)), toISODate(prevEnd)];
+}
+
 // Past this many days, per-day charts drop in-bar labels and thin the x-axis.
 export const DENSE_DAYS = 45;
 

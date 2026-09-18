@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import PageHeader from "../components/PageHeader.jsx";
 import { useFilters, applyFilters } from "../filters.jsx";
 import { ALL_ZONE_TEAMS } from "../theme.js";
-import { mean, formatSeconds } from "../utils.js";
+import { mean, formatSeconds, prevMonthRange } from "../utils.js";
 
 const MEDAL_COLORS = ["#F5C518", "#B8B8C0", "#CD7F32"]; // gold, silver, bronze
 const WORST_COLORS = ["#E74C3C", "#F39C12", "#F1C40F"]; // red, orange, yellow (descending severity)
@@ -24,14 +24,6 @@ function rankMap(items, fastest) {
   const m = new Map();
   sorted.forEach((r, i) => m.set(r.team, { rank: i + 1, sec: r.sec, count: r.count }));
   return m;
-}
-
-function prevPeriod(start, end) {
-  const e = new Date(end);
-  const prevEnd = new Date(e.getFullYear(), e.getMonth(), 0);
-  const prevStart = new Date(prevEnd.getFullYear(), prevEnd.getMonth(), 1);
-  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  return [iso(prevStart), iso(prevEnd)];
 }
 
 function RankDelta({ current, previous }) {
@@ -311,7 +303,7 @@ function RankingCard({ label, sublabel, items, prevItems, average }) {
 
 export default function Page21({ records }) {
   const f = useFilters();
-  const [prevStart, prevEnd] = useMemo(() => prevPeriod(f.start, f.end), [f.start, f.end]);
+  const [prevStart, prevEnd] = useMemo(() => prevMonthRange(f.end), [f.end]);
 
   const filtered = useMemo(() => applyFilters(records, f), [records, f]);
   const prevFiltered = useMemo(

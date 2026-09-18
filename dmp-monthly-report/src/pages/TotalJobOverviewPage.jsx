@@ -21,7 +21,7 @@ import PageHeader from "../components/PageHeader.jsx";
 import ChartCard from "../components/ChartCard.jsx";
 import EditableNote from "../components/EditableNote.jsx";
 import { useFilters, applyFilters } from "../filters.jsx";
-import { COLORS, PRIORITY_ORDER, TEAMS } from "../theme.js";
+import { COLORS, PRIORITY_ORDER, TEAMS, SLA_PRIORITIES } from "../theme.js";
 import { pct, fmtPct, rangeDays, dailyRows, targetForRange, DENSE_DAYS } from "../utils.js";
 
 // Monthly targets; scaled to the selected range with targetForRange().
@@ -672,11 +672,6 @@ const pillBtn = (active, color) => ({
   transition: "all 0.15s",
 });
 
-// Business spec: SLA% is calculated using Critical + Major priority jobs only.
-// Other widgets (Total Job, Job by Priority, Job Done Per day, etc.) still
-// include every priority.
-const SLA_PRIORITIES = new Set(["Critical", "Major"]);
-
 /** Subject is either { kind: "zone", zone: "Latkrabang" } or { kind: "team", zone, team: "Dmplocallatkrabang A" } */
 export default function TotalJobOverviewPage({ records, subject }) {
   const f = useFilters();
@@ -688,6 +683,8 @@ export default function TotalJobOverviewPage({ records, subject }) {
   }, [records, f, subject]);
 
   // SLA-only view — used for the SLA% bars and the SLA % shown in the page title.
+  // Every other widget on this page (Total Job, Job by Priority, Job Done Per day)
+  // keeps all priorities.
   const slaFiltered = useMemo(
     () => filtered.filter((r) => SLA_PRIORITIES.has(r.p)),
     [filtered]

@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import PageHeader from "../components/PageHeader.jsx";
 import { useFilters, applyFilters } from "../filters.jsx";
 import { COLORS } from "../theme.js";
-import { mean, formatSeconds } from "../utils.js";
+import { mean, formatSeconds, prevMonthRange } from "../utils.js";
 
 const PRIORITIES = ["Critical", "Major", "Minor"];
 
@@ -33,14 +33,6 @@ function avgForPriority(records, priority) {
     onsite_to_done: mean(recs.map((r) => r.od)),
     count: recs.length,
   };
-}
-
-function prevPeriod(start, end) {
-  const e = new Date(end);
-  const prevEnd = new Date(e.getFullYear(), e.getMonth(), 0);
-  const prevStart = new Date(prevEnd.getFullYear(), prevEnd.getMonth(), 1);
-  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  return [iso(prevStart), iso(prevEnd)];
 }
 
 function trendInfo(currentSec, prevSec) {
@@ -174,7 +166,7 @@ function PriorityCard({ name, current, prev, prevMonth, curMonth }) {
 
 export default function AvgDurationPage({ records, zone }) {
   const f = useFilters();
-  const [prevStart, prevEnd] = useMemo(() => prevPeriod(f.start, f.end), [f.start, f.end]);
+  const [prevStart, prevEnd] = useMemo(() => prevMonthRange(f.end), [f.end]);
 
   const currentRecs = useMemo(
     () => applyFilters(records, f, ["zone"]).filter((r) => r.z === zone),

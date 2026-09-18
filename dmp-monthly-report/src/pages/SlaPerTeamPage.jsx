@@ -12,20 +12,10 @@ import {
 import PageHeader from "../components/PageHeader.jsx";
 import ChartCard from "../components/ChartCard.jsx";
 import { useFilters, applyFilters } from "../filters.jsx";
-import { COLORS, MONTHS_EN, TEAMS } from "../theme.js";
-import { monthKey, pct } from "../utils.js";
+import { COLORS, MONTHS_EN, TEAMS, SLA_PRIORITIES } from "../theme.js";
+import { lastSixMonths, monthKey, pct } from "../utils.js";
 
 const TEAM_COLORS = ["#E74C3C", "#F1C40F", "#27AE60"]; // A=red, B=yellow, C=green (PDF convention)
-
-function lastSixMonths(endStr) {
-  const [y, m] = endStr.slice(0, 7).split("-").map(Number);
-  const out = [];
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(y, m - 1 - i, 1);
-    out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-  }
-  return out;
-}
 
 function buildSeries(records, months, teams, kind) {
   return months.map((mk) => {
@@ -112,9 +102,6 @@ function TeamLineChart({ data, teams, label }) {
     </ChartCard>
   );
 }
-
-// Business spec: SLA% is calculated using Critical + Major priority jobs only.
-const SLA_PRIORITIES = new Set(["Critical", "Major"]);
 
 export default function SlaPerTeamPage({ records, zone }) {
   const f = useFilters();

@@ -13,25 +13,8 @@ import {
 import PageHeader from "../components/PageHeader.jsx";
 import ChartCard from "../components/ChartCard.jsx";
 import { useFilters, applyFilters } from "../filters.jsx";
-import { COLORS, ZONES, MONTHS_EN } from "../theme.js";
-import { monthKey, pct } from "../utils.js";
-
-// Page-level rule: SLA% Performance by Zone is calculated using
-// Critical + Major priority jobs only (per business spec).
-const SLA_PRIORITIES = ["Critical", "Major"];
-
-// Build last-6 months ending at the filter end date (inclusive)
-function lastSixMonths(endStr) {
-  const [y, m] = endStr.slice(0, 7).split("-").map(Number);
-  const out = [];
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(y, m - 1 - i, 1);
-    out.push(
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
-    );
-  }
-  return out;
-}
+import { COLORS, ZONES, MONTHS_EN, SLA_PRIORITIES } from "../theme.js";
+import { lastSixMonths, monthKey, pct } from "../utils.js";
 
 function slaSeries(records, zone, months) {
   return months.map((mk) => {
@@ -39,7 +22,7 @@ function slaSeries(records, zone, months) {
       (r) =>
         r.z === zone &&
         monthKey(r.d) === mk &&
-        SLA_PRIORITIES.includes(r.p)
+        SLA_PRIORITIES.has(r.p)
     );
     const before = pct(
       recs.filter((r) => r.bw === "In Due").length,
@@ -123,7 +106,7 @@ export default function Page05({ records }) {
     const filtered = applyFilters(records, f, ["zone", "priority"]);
     return zones.map((z) => {
       const recs = filtered.filter(
-        (r) => r.z === z && SLA_PRIORITIES.includes(r.p)
+        (r) => r.z === z && SLA_PRIORITIES.has(r.p)
       );
       return {
         zone: z,

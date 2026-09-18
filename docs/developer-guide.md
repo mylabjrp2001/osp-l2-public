@@ -73,10 +73,19 @@ Python · ETL (server/etl.py)          อ่าน Excel → ทำความ
 | ลำดับหน้าและเมนูด้านซ้าย | `App.jsx` → `NAV` (21 หน้ารายงาน) และ `DASH` (Dashboard) |
 | Export PDF / PowerPoint | `export.js` |
 
-**⚠️ มีโค้ดซ้ำหลายไฟล์ แก้ที่เดียวตัวเลขจะไม่ตรงกัน**
-- `SLA_PRIORITIES` (Critical + Major) — Page05, SlaPerTeamPage, TotalJobOverviewPage
-- `prevPeriod` (เทียบเดือนก่อน) — Page21, Page22, AvgDurationPage
-- `lastSixMonths` — Page05, Page08, SlaPerTeamPage
+### กฎที่ใช้ร่วมกันหลายหน้า อยู่ที่เดียว
+
+**ห้ามประกาศซ้ำในหน้าใดหน้าหนึ่ง ให้ import ไปใช้** (เคยก๊อปไว้ไฟล์ละชุด แล้วแก้ไม่ครบจนตัวเลขไม่ตรงกัน)
+
+| ของ | อยู่ที่ | ใครใช้ |
+|---|---|---|
+| `SLA_PRIORITIES` = Critical + Major | `theme.js` | Page05 · SlaPerTeamPage (หน้า 9–10) · TotalJobOverviewPage (หน้า 11–18) |
+| `lastSixMonths(end)` | `utils.js` | Page05 · Page08 · SlaPerTeamPage |
+| `prevMonthRange(end)` | `utils.js` | Page21 · Page22 · AvgDurationPage |
+
+ส่วนที่ **ตั้งใจให้ต่างกันรายหน้า** คือ argument `skip` ของ `applyFilters(records, f, skip)` เช่น
+หน้า 5 ข้าม date + zone + priority เพราะใช้หน้าต่าง 6 เดือนตายตัว ส่วนหน้า 9–10 ข้าม team เพราะแยกเส้นรายทีมเองอยู่แล้ว
+อันนี้ไม่ใช่โค้ดซ้ำ อย่าไปรวบให้เหลืออันเดียว
 
 ### โครงสร้างข้อมูลใน data.json
 

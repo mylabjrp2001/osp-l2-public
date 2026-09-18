@@ -30,6 +30,10 @@ export const COLORS = {
 
 export const PRIORITY_ORDER = ["Critical", "Major", "Minor", "None"];
 
+// Business spec: SLA% counts Critical + Major jobs only. Page 22 is the exception —
+// it deliberately follows whatever priorities the user picked in the filter bar.
+export const SLA_PRIORITIES = new Set(["Critical", "Major"]);
+
 export const MONTHS_EN = [
   "January",
   "February",

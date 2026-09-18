@@ -2,15 +2,7 @@ import React, { useMemo } from "react";
 import PageHeader from "../components/PageHeader.jsx";
 import { useFilters, applyFilters } from "../filters.jsx";
 import { ALL_ZONE_TEAMS } from "../theme.js";
-import { pct, fmtPct } from "../utils.js";
-
-function prevPeriod(start, end) {
-  const e = new Date(end);
-  const prevEnd = new Date(e.getFullYear(), e.getMonth(), 0);
-  const prevStart = new Date(prevEnd.getFullYear(), prevEnd.getMonth(), 1);
-  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  return [iso(prevStart), iso(prevEnd)];
-}
+import { pct, fmtPct, prevMonthRange } from "../utils.js";
 
 function band(sla) {
   if (sla >= 90) return { label: "Excellent", color: "#27AE60", bg: "#E8F8EE", icon: "▲" };
@@ -208,7 +200,7 @@ function KPICard({ team, current, previous, n, pass }) {
 
 export default function Page22({ records }) {
   const f = useFilters();
-  const [prevStart, prevEnd] = useMemo(() => prevPeriod(f.start, f.end), [f.start, f.end]);
+  const [prevStart, prevEnd] = useMemo(() => prevMonthRange(f.end), [f.end]);
   const currRecs = useMemo(() => applyFilters(records, f), [records, f]);
   const prevRecs = useMemo(
     () => applyFilters(records, { ...f, start: prevStart, end: prevEnd }),
