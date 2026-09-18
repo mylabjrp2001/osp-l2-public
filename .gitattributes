@@ -2,6 +2,11 @@
 # cmd.exe misreads labels and blocks, so start.bat / dev.bat break on Windows.
 *.bat text eol=crlf
 
+# PowerShell 5.1 reads a BOM-less .ps1 as ANSI, which garbles the banner's box
+# characters — start-windows.ps1 therefore starts with a UTF-8 BOM and git must
+# keep it byte for byte (do not add working-tree-encoding here: git then rejects the BOM).
+*.ps1 text eol=crlf
+
 *.xlsx binary
 *.xlsm binary
 *.pbix binary

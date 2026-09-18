@@ -1,46 +1,43 @@
 @echo off
-rem DMP Monthly Report - run the app on this Windows PC. Double-click to start.
-rem First run installs everything it needs (a few minutes); later runs start in seconds.
-rem Needs Python 3.12 and Node.js LTS installed. See README "Run on Windows".
+rem DMP Monthly Report (OSP L2) - double-click to run the app on this PC.
+rem First run installs what it needs (a few minutes); later runs start in seconds.
+rem Needs Python 3.12 and Node.js LTS. See README "ติดตั้งและใช้งานบน Windows".
+rem
+rem To use another port, remove the "rem" below and change the number.
+rem set "OSP_PORT=8010"
 setlocal
-title DMP Monthly Report
-set "PORT=8000"
+title OSP L2 - DMP Monthly Report
+if not defined OSP_PORT set "OSP_PORT=8000"
 set "PYTHONUTF8=1"
+
+set "PS=powershell"
+where pwsh >nul 2>nul && set "PS=pwsh"
+%PS% -NoProfile -ExecutionPolicy Bypass -File "%~dp0dmp-monthly-report\scripts\start-windows.ps1"
+if errorlevel 9009 goto :fallback
+exit /b 0
+
+rem ---------------------------------------------------------------------------
+rem Plain fallback for machines where PowerShell cannot run scripts at all.
+:fallback
+echo.
+echo   PowerShell is unavailable - running in plain mode.
+echo.
 cd /d "%~dp0dmp-monthly-report" || goto :fail
-
-rem Already running from an earlier double-click? Just open it again.
-powershell -NoProfile -Command "try { $r = Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 http://127.0.0.1:%PORT%/api/status; if ($r.Content -match 'storage_dir') { exit 0 } else { exit 2 } } catch { exit 1 }"
-if %errorlevel%==0 (
-  echo DMP Monthly Report is already running - opening it in the browser.
-  start "" "http://localhost:%PORT%/"
-  exit /b 0
-)
-if %errorlevel%==2 (
-  echo [X] Port %PORT% is used by another program. Close it, or change PORT at the top of start.bat.
-  goto :fail
-)
-
 call scripts\setup-windows.bat || goto :fail
-
-echo [start] Building the web app...
-call npm run build -- --logLevel error
-if errorlevel 1 (
-  echo [X] Build failed - see the error above.
-  goto :fail
-)
-
-rem Open the browser as soon as the server answers.
-start "" /b powershell -NoProfile -WindowStyle Hidden -Command "for ($i = 0; $i -lt 120; $i++) { try { Invoke-WebRequest -UseBasicParsing -TimeoutSec 2 http://127.0.0.1:%PORT%/api/status | Out-Null; Start-Process 'http://localhost:%PORT%/'; break } catch { Start-Sleep -Milliseconds 500 } }"
-
+call npm run build -- --logLevel error || goto :fail
 echo.
-echo   DMP Monthly Report is running at http://localhost:%PORT%/
-echo   Keep this window open while using it. Close the window to stop the app.
+echo   DMP Monthly Report is running at http://localhost:%OSP_PORT%/
+echo   KEEP THIS WINDOW OPEN. Closing it stops the app.
 echo.
-"%PYEXE%" -m uvicorn server.app:app --host 127.0.0.1 --port %PORT%
+start "" "http://localhost:%OSP_PORT%/"
+"%CD%\server\.venv\Scripts\python.exe" -m uvicorn server.app:app --host 127.0.0.1 --port %OSP_PORT%
+echo.
+echo   The app is no longer running.
+pause
 exit /b 0
 
 :fail
 echo.
-echo Start-up did not finish. Read the message above, fix it, then double-click start.bat again.
+echo   Start-up did not finish. Read the message above, fix it, then run start.bat again.
 pause
 exit /b 1
