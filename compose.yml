@@ -1,0 +1,22 @@
+# DMP Monthly Report — รันด้วย Docker (ทางเลือก ถ้าไม่อยากลง Python/Node เอง)
+#   docker compose up -d --build dmp-report     แล้วเปิด http://localhost:8000
+# ข้อมูล (Excel + data.json) เก็บนอกอิมเมจที่โฟลเดอร์ ./data ของเครื่องที่รัน
+name: dmp-report
+services:
+  dmp-report:
+    build:
+      context: ./dmp-monthly-report
+    image: dmp-report:latest
+    container_name: dmp-report
+    environment:
+      TZ: Asia/Bangkok
+      DMP_STORAGE: /data
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - ${DATA_DIR:-./data}:/data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4g

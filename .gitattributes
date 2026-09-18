@@ -1,0 +1,7 @@
+# Batch files must keep CRLF line endings. With LF (e.g. after editing on a Mac),
+# cmd.exe misreads labels and blocks, so start.bat / dev.bat break on Windows.
+*.bat text eol=crlf
+
+*.xlsx binary
+*.xlsm binary
+*.pbix binary

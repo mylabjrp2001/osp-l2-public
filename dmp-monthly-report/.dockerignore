@@ -1,0 +1,13 @@
+node_modules
+dist
+public
+etl
+server/.venv
+server/storage
+server/__pycache__
+__pycache__
+*.pyc
+*.log
+.DS_Store
+ecosystem.config.cjs
+README.md

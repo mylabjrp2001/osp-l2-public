@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Python virtual envs
+.venv/
+**/.venv/
+__pycache__/
+*.pyc
+
+# Build output
+dist/
+**/dist/
+
+# Generated dataset (rebuilt by ETL)
+**/public/data.json
+**/server/storage/
+
+# OS / editor cruft
+.DS_Store
+**/.DS_Store
+.idea/
+*.sw?
+.specstory/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local env — prod ไม่ต้องใช้ .env (ค่า default อยู่ใน compose.yml แล้ว)
+# ถ้าจะเพิ่มทีหลัง ให้ commit เข้า git ด้วย (repo private, deploy ด้วย git clone ล้วน)
+*.local
